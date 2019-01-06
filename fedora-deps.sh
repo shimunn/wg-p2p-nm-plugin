@@ -1,0 +1,1 @@
+dnf install -y glib-devel gdbus-devel dbus-devel glibc-devel libmnl libmnl-devel cairo-devel pango-devel atk-devel gdk-pixbuf-devel gdk-pixbuf2-devel dbus-devel gdk3-devel openssl-devel openssl-devel glib2-devel rust-gdk-devel glib2-devel glib2-static rust-glib-sys-devel glibc-headers glib-devel nm-version.h NetworkManager-libnm-devel

@@ -10,6 +10,7 @@ use std::process::Command;
 use std::process::Stdio;
 
 use drunken_bishop;
+use drunken_bishop::BoxMode;
 use bulletinboard;
 use vpn_settings;
 use vpn_settings::VpnSettings;
@@ -187,7 +188,7 @@ impl Editor {
             if key.len() != 32 {
                 this.remote_public_key.set_icon_tooltip_markup(pos, "Invalid Public Key!");
             } else {
-                let text = drunken_bishop::drunken_bishop(&key, drunken_bishop::OPENSSL);
+                let text = drunken_bishop::drunken_bishop(&key, drunken_bishop::OPENSSL, BoxMode::Ascii);
                 let text = format!("<tt>{}</tt>", escape_markup(text.trim()));
                 this.remote_public_key.set_icon_tooltip_markup(pos, &text[..]);
             }
@@ -202,7 +203,7 @@ impl Editor {
             if key.len() != 32 {
                 this.local_public_key.set_icon_tooltip_markup(pos, "Invalid Private Key!");
             } else {
-                let text = drunken_bishop::drunken_bishop(&key, drunken_bishop::OPENSSL);
+                let text = drunken_bishop::drunken_bishop(&key, drunken_bishop::OPENSSL, BoxMode::Ascii);
                 let text = format!("<tt>{}</tt>", escape_markup(text.trim()));
                 this.local_public_key.set_icon_tooltip_markup(pos, &text[..]);
             }

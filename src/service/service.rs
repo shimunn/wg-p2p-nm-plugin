@@ -148,7 +148,7 @@ pub fn rust_connect(plugin: *mut NMVpnServicePlugin,
         link.set_wireguard(private_key, listen_port, None, &peers)?;
         link.set_up(true)?;
 
-        Ok(link)
+        link
     };
 
     match res {

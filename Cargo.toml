@@ -16,21 +16,21 @@ path = "src/service/service.rs"
 cc = "*"
 
 [dependencies]
-gtk = "*"
-gio-sys = "*"
-gtk-sys = "*"
-libc = "*"
+gtk = "0.3.0"
+gio-sys = "0.5.0"
+gtk-sys = "0.5.0"
+libc = "^0.2"
 docopt = "*"
-glib = "*"
-gdk = "*"
-gobject-sys = "*"
-#gdbus = { git = "https://github.com/manuels/gdbus-rs" }
-gdbus = { path = "../gdbus-rs" }
-drunken_bishop = "*"
+glib = "0.4.1"
+gdk = "0.7.0"
+gobject-sys = "0.5.0"
+gdbus = { git = "https://github.com/manuels/gdbus-rs" }
+#gdbus = { path = "../gdbus-rs" }
+drunken_bishop = "0.1.1"
 crslmnl = "*"
 time = "*"
 
 [dependencies.glib-sys]
-version = "*"
+version = "0.5.0"
 features = [ "dox" ]
 
