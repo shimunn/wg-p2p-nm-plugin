@@ -48,9 +48,9 @@ package: compile
 	rm -R $(TMPDIR)
 
 clean:
-	rm wg-p2p-nm*.deb
-	rm wg-p2p-nm*.rpm
-	docker rmi $(shell pwd | sha1sum | cut -c -32)
+	-rm wg-p2p-nm*.deb
+	-rm wg-p2p-nm*.rpm
+	-docker rmi -f $(shell pwd | sha1sum | cut -c -32)
 
 .PHONY: clean
 
