@@ -10,6 +10,7 @@ pub struct VpnSettings(*mut NMSettingVpn);
 
 pub const WG_P2P_VPN_LOCAL_NAME: &str = "local-name";
 pub const WG_P2P_VPN_LOCAL_PORT: &str = "local-port";
+pub const WG_P2P_VPN_ALLOWED_IPS: &str = "allowed-ips";
 pub const WG_P2P_VPN_ENDPOINT_ADDRESS: &str = "endpoint-address";
 pub const WG_P2P_VPN_ENDPOINT_METHOD: &str = "endpoint-method";
 pub const WG_P2P_VPN_REMOTE_PUBLIC_KEY: &str = "remote-public-key";

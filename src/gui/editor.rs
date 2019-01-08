@@ -8,6 +8,7 @@ use std::io::Read;
 use std::io::Write;
 use std::process::Command;
 use std::process::Stdio;
+use std::rand::{task_rng, Rng};
 
 use drunken_bishop;
 use drunken_bishop::BoxMode;
@@ -63,6 +64,7 @@ pub struct Editor {
     local_private_key: gtk::Entry,
     local_public_key: gtk::Entry,
     local_port: gtk::Entry,
+    allowed_ips: gtk::Entry,
     key_result_list: gtk::TreeView,
     hint: gtk::InfoBar,
     search_status: gtk::Label,
@@ -85,6 +87,7 @@ impl Editor {
         let local_public_key = builder.get_object("local-public-key").unwrap();
         let local_name = builder.get_object("local-name").unwrap();
         let local_port = builder.get_object("local-port").unwrap();
+        let allowed_ips = builder.get_object("allowed-ips").unwrap();
         let remote_public_key = builder.get_object("remote-public-key").unwrap();
         let key_result_list = builder.get_object("key-result-list").unwrap();
         let endpoint_address = builder.get_object("endpoint-address").unwrap();
@@ -105,6 +108,7 @@ impl Editor {
             find_btn,
             find_dlg,
             local_port,
+            allowed_ips,
             local_private_key,
             local_public_key,
             local_name,
@@ -123,6 +127,24 @@ impl Editor {
         editor.set_connection(conn);
 
         editor
+    }
+    
+    fn parse_ips<I: AsRef<str>>(ips: I) -> Result<Vec<(IpAddress,u8)>,Error> {
+     let parts = ips.as_ref().split(",");
+     parts.iter().map(|p| {
+      let p = p.split("/");
+      match (p.first(), p.last()) {
+       (Some(addr), Some(sub)) if addr == sub => Err,
+       (Some(addr), Some(sub)) => (addr.parse::<IpAddress>()?, sub.parse::<u8>()?),
+       (Some(addr), _) => {
+        let addr = addr.parse::<IpAddress>()?;
+        match addr {
+         v4: IpV4Address => (addr, 32),
+         _ => (addr, 128) //V6
+        }
+       }
+      }
+     }).collect::<Vec<Result<Vec<(IpAddress, u8)>, Error>>>()
     }
 
     fn set_connection(&mut self, conn: *mut u8) {
@@ -155,6 +177,17 @@ impl Editor {
         self.local_name.connect_changed(move |_| this.emit_changed());
         let this = self.clone();
         self.local_port.connect_changed(move |_| this.emit_changed());
+        let this = self.clone();
+        self.allowed_ips.connect_changed(move |_| {
+            let pos = gtk::EntryIconPosition::Secondary;
+            let ips_s = this.allowed_ips.get_text().unwrap();
+
+            if Ok(ips) = Self::parse_ips(ips_s) {
+                this.allowed_ips.set_icon_tooltip_markup(pos, "Ok");
+            } else {
+                this.allowed_ips.set_icon_tooltip_markup(pos, "Incorrect format! Try: <x.x.x.x/n>[,y.y.y.y/k]...");
+            }
+        });
         let this = self.clone();
         self.remote_public_key.connect_changed(move |_| this.emit_changed());
         //self.endpoint_method.connect_changed(move |_| emit_changed(editor));
@@ -292,6 +325,7 @@ impl Editor {
 
         let local_name = settings.get_data_item(vpn_settings::WG_P2P_VPN_LOCAL_NAME);
         let local_port = settings.get_data_item(vpn_settings::WG_P2P_VPN_LOCAL_PORT);
+        let allowed_ops = settings.get_data_item(vpn_settings::WG_P2P_VPN_ALLOWED_IPS);
         let _endpoint_method = settings.get_data_item(vpn_settings::WG_P2P_VPN_ENDPOINT_METHOD);
         let endpoint_address = settings.get_data_item(vpn_settings::WG_P2P_VPN_ENDPOINT_ADDRESS);
         let remote_public_key = settings.get_data_item(vpn_settings::WG_P2P_VPN_REMOTE_PUBLIC_KEY);
@@ -299,7 +333,8 @@ impl Editor {
         let local_public_key = settings.get_data_item(vpn_settings::WG_P2P_VPN_LOCAL_PUBLIC_KEY);
 
         self.local_name.set_text(local_name.as_ref().map_or("", |s| &**s));
-        self.local_port.set_text(local_port.as_ref().map_or("", |s| &**s));
+        self.local_port.set_text(local_port.as_ref().map_or(task_rng().gen_range(1024 as u16, u16::MAX).into(), |s| &**s));
+        self.allowed_ips.set_text(allowed_ips.as_ref().map_or("0.0.0.0/0", |s| &**s));
         self.endpoint_address.set_text(endpoint_address.as_ref().map_or("", |s| &**s));
         self.remote_public_key.set_text(remote_public_key.as_ref().map_or("", |s| &**s));
         self.interface_name.set_text(iface.as_ref().map_or("wg0", |s| &**s));
@@ -374,6 +409,7 @@ impl Editor {
 
         let local_name = self.local_name.get_text().unwrap_or("".to_string());
         let local_port = self.local_port.get_text().unwrap_or("".to_string());
+        let allowed_ips = self.allowed_ips.get_text().unwrap_or("0.0.0.0/0".to_string());
         let endpoint_address = self.endpoint_address.get_text().unwrap_or("".to_string());
         let interface_name = self.interface_name.get_text().unwrap_or("".to_string());
         let local_public_key = self.local_public_key.get_text().unwrap_or("".to_string());
@@ -388,6 +424,7 @@ impl Editor {
 
         settings.add_data_item(vpn_settings::WG_P2P_VPN_LOCAL_NAME, &local_name);
         settings.add_data_item(vpn_settings::WG_P2P_VPN_LOCAL_PORT, &local_port);
+        settings.add_data_item(vpn_settings::WG_P2P_VPN_ALLOWED_IPS, &allowed_ips);
         settings.add_data_item(vpn_settings::WG_P2P_VPN_ENDPOINT_METHOD, &endpoint_method);
         settings.add_data_item(vpn_settings::WG_P2P_VPN_ENDPOINT_ADDRESS, &endpoint_address);
         settings.add_data_item(vpn_settings::WG_P2P_VPN_REMOTE_PUBLIC_KEY, &remote_public_key);
